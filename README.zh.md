@@ -164,6 +164,58 @@ package 地址和安装入口与之前保持一致。现在变化的是 product 
 
 其它所有 `System Settings` 页面或隐私子页面，请使用 `SystemSettingsKit`。
 
+## Info.plist 隐私描述
+
+会触发 Apple 系统隐私授权弹窗的权限，宿主 App 必须在 `Info.plist` 中配置对应的用途描述。如果宿主 macOS App 开启了 App Sandbox，还需要在 **Signing & Capabilities > App Sandbox** 中启用对应 entitlement。
+
+### Microphone
+
+当你请求 `.microphone` 或调用 Apple 的麦克风授权 API 时配置：
+
+```xml
+<key>NSMicrophoneUsageDescription</key>
+<string>此应用需要使用麦克风进行音频录制。</string>
+```
+
+对于沙盒化 macOS App，打开 `Audio Input`，或添加：
+
+```xml
+<key>com.apple.security.device.audio-input</key>
+<true/>
+```
+
+### Camera
+
+当你请求摄像头权限时配置：
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>此应用需要使用摄像头进行视频采集。</string>
+```
+
+对于沙盒化 macOS App，打开 `Camera`，或添加：
+
+```xml
+<key>com.apple.security.device.camera</key>
+<true/>
+```
+
+### Apple Events
+
+当你的 App 发送 Apple Events，例如自动化或控制另一个 App 时配置：
+
+```xml
+<key>NSAppleEventsUsageDescription</key>
+<string>此应用需要控制其他 App 以引导完成授权。</string>
+```
+
+对于沙盒化 macOS App，打开 `Apple Events`，或添加：
+
+```xml
+<key>com.apple.security.automation.apple-events</key>
+<true/>
+```
+
 ## 快速开始
 
 ### 使用 SwiftUI 按钮

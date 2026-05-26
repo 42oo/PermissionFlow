@@ -164,6 +164,58 @@ Platform support:
 
 For every other `System Settings` page or privacy subsection, use `SystemSettingsKit`.
 
+## Info.plist Privacy Descriptions
+
+Permissions that trigger Apple's system privacy prompt must include the matching usage description in the host app's `Info.plist`. If the host macOS app uses App Sandbox, also enable the matching entitlement in **Signing & Capabilities > App Sandbox**.
+
+### Microphone
+
+Use this when requesting `.microphone` or calling Apple's microphone authorization APIs.
+
+```xml
+<key>NSMicrophoneUsageDescription</key>
+<string>This app needs microphone access for audio recording.</string>
+```
+
+For sandboxed macOS apps, turn on `Audio Input`, or add:
+
+```xml
+<key>com.apple.security.device.audio-input</key>
+<true/>
+```
+
+### Camera
+
+Use this when requesting camera access.
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>This app needs camera access for video capture.</string>
+```
+
+For sandboxed macOS apps, turn on `Camera`, or add:
+
+```xml
+<key>com.apple.security.device.camera</key>
+<true/>
+```
+
+### Apple Events
+
+Use this when your app sends Apple Events, such as automating or controlling another app.
+
+```xml
+<key>NSAppleEventsUsageDescription</key>
+<string>This app needs to control other apps for authorization guidance.</string>
+```
+
+For sandboxed macOS apps, turn on `Apple Events`, or add:
+
+```xml
+<key>com.apple.security.automation.apple-events</key>
+<true/>
+```
+
 ## Quick Start
 
 ### SwiftUI button
