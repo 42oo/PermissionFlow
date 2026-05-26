@@ -141,12 +141,13 @@ package 地址和安装入口与之前保持一致。现在变化的是 product 
 
 ## 支持的权限页面
 
-`PermissionFlow` 只覆盖支持悬浮框 + 拖拽授权的这 8 个权限页：
+`PermissionFlow` 覆盖以下权限页。大多数权限使用悬浮框 + 拖拽授权流程；`.microphone` 使用系统麦克风授权弹窗。
 
 - `.accessibility`：打开 `隐私与安全性 > 辅助功能`。✅ **支持状态检测**
 - `.fullDiskAccess`：打开 `隐私与安全性 > 完全磁盘访问权限`。✅ **支持状态检测**
 - `.inputMonitoring`：打开 `隐私与安全性 > 输入监控`。✅ **支持状态检测**
 - `.screenRecording`：打开 `隐私与安全性 > 屏幕录制`。✅ **支持状态检测**
+- `.microphone`：请求麦克风授权，并在需要时打开 `隐私与安全性 > 麦克风`。✅ **支持状态检测**
 - `.bluetooth`：打开 `隐私与安全性 > 蓝牙`。✅ **支持状态检测**
 - `.mediaAppleMusic`：打开 `隐私与安全性 > 媒体与 Apple Music`。✅ **支持状态检测**
 - `.appManagement`：打开 `隐私与安全性 > App 管理`。⚠️ 状态检测不可用
@@ -156,7 +157,7 @@ package 地址和安装入口与之前保持一致。现在变化的是 product 
 
 - ✅ **已授权**：绿色勾选图标，显示"已授权"文字
 - ➡️ **未授权**：蓝色箭头图标，显示"授权"文字
-- `PermissionFlow` 内置支持：`.accessibility`、`.fullDiskAccess`
+- `PermissionFlow` 内置支持：`.accessibility`、`.fullDiskAccess`、`.microphone`
 - 可通过可选状态扩展启用：`.bluetooth`、`.inputMonitoring`、`.mediaAppleMusic`、`.screenRecording`
 - 🔄 **检查中**：时钟图标，显示"检查中..."文字
 - ❓ **未知**：蓝色箭头图标，显示"打开"文字（不支持检测时）
@@ -440,7 +441,7 @@ SystemSettings.open(.privacy(anchor: .privacyAccessibility))
 SystemSettings.open(.privacy(anchor: .security))
 ```
 
-原有的 `PermissionFlowPane` 仍然继续用于当前包内“带悬浮框授权流程”的那组隐私权限页面。
+原有的 `PermissionFlowPane` 仍然继续用于当前包内的权限授权流程页面。
 
 - `.appManagement`：打开 `隐私与安全性 > App Management`。
 - `.accessibility`：打开 `隐私与安全性 > Accessibility`。
@@ -449,6 +450,7 @@ SystemSettings.open(.privacy(anchor: .security))
 - `.fullDiskAccess`：打开 `隐私与安全性 > Full Disk Access`。
 - `.inputMonitoring`：打开 `隐私与安全性 > Input Monitoring`。
 - `.mediaAppleMusic`：打开 `隐私与安全性 > Media & Apple Music`。✅ **支持状态检测**
+- `.microphone`：请求麦克风授权，并在需要时打开 `隐私与安全性 > Microphone`。✅ **支持状态检测**
 - `.screenRecording`：打开 `隐私与安全性 > Screen Recording`。
 
 当前内置的隐私与安全性强类型锚点，以及它们实际跳转到的位置：

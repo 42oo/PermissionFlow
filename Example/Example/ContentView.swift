@@ -57,7 +57,7 @@ struct ContentView: View {
                 Text("Each button opens the corresponding system settings privacy page. Only permission pages that support drag-and-drop app addition will show the floating authorization window. It's recommended to drag in the current Example.app by default.")
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
-                Text("Permission pages like Automation, Camera, Microphone, and Files & Folders that don't natively support drag-and-drop app addition will only open the settings interface without showing the floating window.")
+                Text("Permission pages like Automation, Camera, and Files & Folders that don't natively support drag-and-drop app addition will only open the settings interface without showing the floating window. Microphone uses the system authorization prompt.")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.primary)
 #else
@@ -106,6 +106,7 @@ struct ContentView: View {
                 PermissionFlowButton(title: "Full DiskAccess", pane: .fullDiskAccess)
                 PermissionFlowButton(title: "Input Monitoring", pane: .inputMonitoring)
                 PermissionFlowButton(title: "Media AppleMusic", pane: .mediaAppleMusic)
+                PermissionFlowButton(title: "Microphone", pane: .microphone)
                 PermissionFlowButton(title: "Screen Recording", pane: .screenRecording)
             }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)], spacing: 5) {
@@ -116,6 +117,7 @@ struct ContentView: View {
                 PermissionFlowButton(pane: .fullDiskAccess)
                 PermissionFlowButton(pane: .inputMonitoring)
                 PermissionFlowButton(pane: .mediaAppleMusic)
+                PermissionFlowButton(pane: .microphone)
                 PermissionFlowButton(pane: .screenRecording)
             }
 #endif
@@ -227,8 +229,12 @@ struct ContentView: View {
                     settingsURLButton(title: "Media & Apple Music", subtitle: "Navigate to Privacy & Security > Media & Apple Music", symbolName: "music.note.list", tint: .red) {
                         SystemSettings.open(.privacy(anchor: .privacyMedia))
                     }
-                    settingsURLButton(title: "Microphone", subtitle: "Navigate to Privacy & Security > Microphone", symbolName: "mic", tint: .red) {
-                        SystemSettings.open(.privacy(anchor: .privacyMicrophone))
+                    settingsURLButton(title: "Microphone", subtitle: "Request Microphone permission and show Privacy & Security > Microphone", symbolName: "mic", tint: .red) {
+                        MicrophonePermissionStatusProvider().requestAuthorization { _ in
+                            Task { @MainActor in
+                                SystemSettings.open(.privacy(anchor: .privacyMicrophone))
+                            }
+                        }
                     }
                     settingsURLButton(title: "Motion & Fitness", subtitle: "Navigate to Privacy & Security > Motion & Fitness", symbolName: "figure.walk", tint: .green) {
                         SystemSettings.open(.privacy(anchor: .privacyMotion))
@@ -594,6 +600,7 @@ struct ContentView: View {
                     sourceFrameInScreen: sourceFrame
                 )
             }
+            MicrophonePermissionCard()
             PermissionCard(
                 title: "Screen Recording",
                 subtitle: "Screen recording authorization example.",
@@ -734,6 +741,113 @@ struct ContentView: View {
 }
 
 #if os(macOS)
+private struct MicrophonePermissionCard: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var authorizationState: PermissionAuthorizationState = .checking
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                Image(systemName: "mic")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 32, height: 32)
+                    .background(Color.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                    .foregroundStyle(.red)
+                Spacer()
+                statusBadge
+            }
+            Text("Microphone").font(.system(size: 18, weight: .semibold))
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Microphone authorization example using the system privacy prompt.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button {
+                    requestAuthorization()
+                } label: {
+                    Label(buttonTitle, systemImage: buttonState.systemImage)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .controlSize(.small)
+                Text("Status: \(statusText)")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.black.opacity(0.045), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.05), radius: 14, y: 5)
+        .onAppear(perform: refreshAuthorizationStatus)
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                refreshAuthorizationStatus()
+            }
+        }
+    }
+
+    private var buttonState: PermissionFlowButtonState {
+        PermissionFlowButtonState.make(from: authorizationState)
+    }
+
+    private var buttonTitle: String {
+        switch authorizationState {
+        case .granted:
+            "Granted"
+        case .checking:
+            "Checking..."
+        case .notGranted, .unknown:
+            "Request Microphone"
+        }
+    }
+
+    private var statusText: String {
+        switch authorizationState {
+        case .granted:
+            "Granted"
+        case .notGranted:
+            "Not Granted"
+        case .unknown:
+            "Unknown"
+        case .checking:
+            "Checking..."
+        }
+    }
+
+    private var statusBadge: some View {
+        Label(statusText, systemImage: buttonState.systemImage)
+            .font(.system(size: 10.5, weight: .medium))
+            .labelStyle(.titleAndIcon)
+            .foregroundStyle(buttonState.isGranted ? .green : .secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill((buttonState.isGranted ? Color.green : Color.secondary).opacity(0.12))
+            )
+    }
+
+    private func refreshAuthorizationStatus() {
+        authorizationState = MicrophonePermissionStatusProvider().authorizationState()
+    }
+
+    private func requestAuthorization() {
+        authorizationState = .checking
+        MicrophonePermissionStatusProvider().requestAuthorization { authorizationState in
+            Task { @MainActor in
+                self.authorizationState = authorizationState
+                SystemSettings.open(.privacy(anchor: .privacyMicrophone))
+            }
+        }
+    }
+}
+
 private struct PermissionCard: View {
     let title: String
     let subtitle: String

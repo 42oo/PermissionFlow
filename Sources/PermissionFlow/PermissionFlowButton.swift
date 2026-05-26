@@ -28,12 +28,7 @@ public struct PermissionFlowButton: View {
 
     public var body: some View {
         Button {
-            controller.setLocaleIdentifier(locale.identifier)
-            controller.authorize(
-                pane: pane,
-                suggestedAppURLs: suggestedAppURLs,
-                sourceFrameInScreen: clickSourceFrameInScreen()
-            )
+            authorize()
         } label: {
             Label {
                 Text(title ?? LocalizedStringResource(String.LocalizationValue(buttonState.titleKey), locale: locale, bundle: .module))
@@ -53,6 +48,31 @@ public struct PermissionFlowButton: View {
     private func clickSourceFrameInScreen() -> CGRect {
         let mouse = NSEvent.mouseLocation
         return CGRect(x: mouse.x - 16, y: mouse.y - 16, width: 32, height: 32)
+    }
+
+    private func authorize() {
+        controller.setLocaleIdentifier(locale.identifier)
+
+        if pane == .microphone {
+            requestMicrophoneAuthorization()
+            return
+        }
+
+        controller.authorize(
+            pane: pane,
+            suggestedAppURLs: suggestedAppURLs,
+            sourceFrameInScreen: clickSourceFrameInScreen()
+        )
+    }
+
+    private func requestMicrophoneAuthorization() {
+        buttonState = PermissionFlowButtonState.make(from: .checking)
+        MicrophonePermissionStatusProvider().requestAuthorization { authorizationState in
+            Task { @MainActor in
+                buttonState = PermissionFlowButtonState.make(from: authorizationState)
+                controller.authorize(pane: .microphone)
+            }
+        }
     }
 
     private func refreshAuthorizationStatus() {

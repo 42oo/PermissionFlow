@@ -74,6 +74,8 @@ public final class PermissionFlowController: ObservableObject {
         mergeDroppedApps(with: suggestedAppURLs)
         SystemSettings.open(url: pane.settingsURL)
 
+        guard pane.supportsFloatingAuthorizationPanel else { return }
+
         Self.activeController = self
         showPanel()
         tracker.startTracking(promptIfNeeded: configuration.promptForAccessibilityTrust)

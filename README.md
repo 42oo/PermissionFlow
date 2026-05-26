@@ -142,12 +142,13 @@ Platform support:
 
 ## Supported Permission Panes
 
-`PermissionFlow` covers these 8 privacy panes that support the floating drag-and-drop authorization workflow:
+`PermissionFlow` covers these privacy panes. Most use the floating drag-and-drop authorization workflow; `.microphone` uses the system microphone prompt instead.
 
 - `.accessibility`: Opens `Privacy & Security > Accessibility`. ✅ **Status Detection Supported**
 - `.fullDiskAccess`: Opens `Privacy & Security > Full Disk Access`. ✅ **Status Detection Supported**
 - `.inputMonitoring`: Opens `Privacy & Security > Input Monitoring`. ✅ **Status Detection Supported**
 - `.screenRecording`: Opens `Privacy & Security > Screen Recording`. ✅ **Status Detection Supported**
+- `.microphone`: Requests microphone authorization and opens `Privacy & Security > Microphone` when settings access is needed. ✅ **Status Detection Supported**
 - `.bluetooth`: Opens `Privacy & Security > Bluetooth`. ✅ **Supports status detection**
 - `.mediaAppleMusic`: Opens `Privacy & Security > Media & Apple Music`. ✅ **Supports status detection**
 - `.appManagement`: Opens `Privacy & Security > App Management`. ⚠️ Status detection not available
@@ -156,7 +157,7 @@ Platform support:
 **Permission Status Display**: For supported permissions, `PermissionFlowButton` automatically displays the current authorization status:
 - ✅ **Granted**: Green checkmark icon with "Granted" text
 - ➡️ **Not Granted**: Blue arrow icon with "Grant" text  
-- Built into `PermissionFlow`: `.accessibility`, `.fullDiskAccess`
+- Built into `PermissionFlow`: `.accessibility`, `.fullDiskAccess`, `.microphone`
 - Available through optional status extensions: `.bluetooth`, `.inputMonitoring`, `.mediaAppleMusic`, `.screenRecording`
 - 🔄 **Checking**: Clock icon with "Checking..." text
 - ❓ **Unknown**: Blue arrow icon with "Open" text (for unsupported detection)
@@ -445,7 +446,7 @@ SystemSettings.open(.privacy(anchor: .privacyAccessibility))
 SystemSettings.open(.privacy(anchor: .security))
 ```
 
-The existing `PermissionFlowPane` type continues to handle the privacy pages used by the floating authorization workflow.
+The existing `PermissionFlowPane` type continues to handle the privacy pages used by the authorization workflow.
 
 - `.appManagement`: Opens `Privacy & Security > App Management`.
 - `.accessibility`: Opens `Privacy & Security > Accessibility`.
@@ -454,6 +455,7 @@ The existing `PermissionFlowPane` type continues to handle the privacy pages use
 - `.fullDiskAccess`: Opens `Privacy & Security > Full Disk Access`.
 - `.inputMonitoring`: Opens `Privacy & Security > Input Monitoring`.
 - `.mediaAppleMusic`: Opens `Privacy & Security > Media & Apple Music`.
+- `.microphone`: Requests microphone authorization and opens `Privacy & Security > Microphone` when settings access is needed.
 - `.screenRecording`: Opens `Privacy & Security > Screen Recording`.
 
 Available typed privacy anchors and their destinations:
