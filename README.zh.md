@@ -380,6 +380,15 @@ PermissionFlowButton(
     suggestedAppURLs: [Bundle.main.bundleURL],
     configuration: .init()
 )
+
+PermissionFlowButton(
+    pane: .screenRecording,
+    suggestedAppURLs: [Bundle.main.bundleURL],
+    configuration: .init()
+) { buttonState in
+    Label("打开屏幕录制权限", systemImage: buttonState.systemImage)
+        .foregroundStyle(buttonState.isGranted ? .green : .primary)
+}
 ```
 
 ### `PermissionFlow.makeController`

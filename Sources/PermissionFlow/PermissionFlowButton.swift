@@ -10,6 +10,7 @@ public struct PermissionFlowButton: View {
     private let pane: PermissionFlowPane
     private let suggestedAppURLs: [URL]
     private let title: LocalizedStringResource?
+    private let customLabel: ((PermissionFlowButtonState) -> AnyView)?
 
     public init(
         title: LocalizedStringResource? = nil,
@@ -21,6 +22,23 @@ public struct PermissionFlowButton: View {
         self.pane = pane
         self.suggestedAppURLs = suggestedAppURLs
         self.title = title
+        self.customLabel = nil
+        
+        // Initialize with checking state, will be updated on appear
+        _buttonState = State(initialValue: PermissionFlowButtonState.make(from: .checking))
+    }
+
+    public init<Label: View>(
+        pane: PermissionFlowPane,
+        suggestedAppURLs: [URL] = [],
+        configuration: PermissionFlowConfiguration = .init(),
+        @ViewBuilder label: @escaping (PermissionFlowButtonState) -> Label
+    ) {
+        _controller = StateObject(wrappedValue: PermissionFlowController(configuration: configuration))
+        self.pane = pane
+        self.suggestedAppURLs = suggestedAppURLs
+        self.title = nil
+        self.customLabel = { AnyView(label($0)) }
         
         // Initialize with checking state, will be updated on appear
         _buttonState = State(initialValue: PermissionFlowButtonState.make(from: .checking))
@@ -30,11 +48,15 @@ public struct PermissionFlowButton: View {
         Button {
             authorize()
         } label: {
-            Label {
-                Text(title ?? LocalizedStringResource(String.LocalizationValue(buttonState.titleKey), locale: locale, bundle: .module))
-            } icon: {
-                Image(systemName: buttonState.systemImage)
-                    .foregroundColor(buttonState.isGranted ? .green : .primary)
+            if let customLabel {
+                customLabel(buttonState)
+            } else {
+                Label {
+                    Text(title ?? LocalizedStringResource(String.LocalizationValue(buttonState.titleKey), locale: locale, bundle: .module))
+                } icon: {
+                    Image(systemName: buttonState.systemImage)
+                        .foregroundColor(buttonState.isGranted ? .green : .primary)
+                }
             }
         }
         .onAppear(perform: refreshAuthorizationStatus)
