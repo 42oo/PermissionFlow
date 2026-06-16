@@ -88,6 +88,7 @@ This package now exposes these library products:
 
 - `PermissionFlow`: floating authorization guidance for supported privacy panes on macOS
 - `SystemSettingsKit`: reusable deeplink API for arbitrary System Settings pages
+- `PermissionFlowStatusStore`: injectable SwiftUI environment status store for reading permission state from any view
 - `PermissionFlowExtendedStatus`: one-stop optional status detection for `.bluetooth`, `.inputMonitoring`, `.mediaAppleMusic`, and `.screenRecording`
 - `PermissionFlowBluetoothStatus`: optional status detection for `.bluetooth`
 - `PermissionFlowMediaStatus`: optional status detection for `.mediaAppleMusic`
@@ -252,6 +253,129 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+        }
+    }
+}
+```
+
+### Inject a status store at app startup
+
+If you want to read permission state from any SwiftUI view, add the `PermissionFlowStatusStore` product:
+
+```swift
+.product(name: "PermissionFlow", package: "PermissionFlow"),
+.product(name: "PermissionFlowStatusStore", package: "PermissionFlow")
+```
+
+Then create and inject the store at the app entry point:
+
+```swift
+import PermissionFlow
+import PermissionFlowStatusStore
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @StateObject private var permissionStatusStore = PermissionFlowStatusStore()
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(permissionStatusStore)
+        }
+    }
+}
+```
+
+Read it from any child view:
+
+```swift
+import PermissionFlow
+import PermissionFlowStatusStore
+import SwiftUI
+
+struct PermissionBadge: View {
+    @EnvironmentObject private var permissionStatusStore: PermissionFlowStatusStore
+
+    var body: some View {
+        Text(title(for: permissionStatusStore.state(for: .accessibility)))
+            .onAppear {
+                permissionStatusStore.refresh(.accessibility)
+            }
+    }
+
+    private func title(for state: PermissionAuthorizationState) -> String {
+        switch state {
+        case .granted:
+            "Granted"
+        case .notGranted:
+            "Not Granted"
+        case .unknown:
+            "Unknown"
+        case .checking:
+            "Checking"
+        }
+    }
+}
+```
+
+`PermissionFlowStatusStore` tracks `PermissionFlowPane.allCases` by default and refreshes automatically when the app becomes active again. You can also track only selected panes:
+
+```swift
+@StateObject private var permissionStatusStore = PermissionFlowStatusStore(
+    panes: [.accessibility, .fullDiskAccess, .screenRecording]
+)
+```
+
+Note: `PermissionFlowStatusStore` is only the state container. Optional panes such as `.inputMonitoring`, `.screenRecording`, `.bluetooth`, and `.mediaAppleMusic` still need their status providers registered first. In other words, `register()` and `PermissionFlowStatusStore` are two separate steps:
+
+```swift
+import PermissionFlowInputMonitoringStatus
+import PermissionFlowStatusStore
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @StateObject private var permissionStatusStore: PermissionFlowStatusStore
+
+    init() {
+        PermissionFlowInputMonitoringStatus.register()
+        _permissionStatusStore = StateObject(
+            wrappedValue: PermissionFlowStatusStore()
+        )
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(permissionStatusStore)
+        }
+    }
+}
+```
+
+To enable all optional status providers at once, register `PermissionFlowExtendedStatus`:
+
+```swift
+import PermissionFlowExtendedStatus
+import PermissionFlowStatusStore
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @StateObject private var permissionStatusStore: PermissionFlowStatusStore
+
+    init() {
+        PermissionFlowExtendedStatus.register()
+        _permissionStatusStore = StateObject(
+            wrappedValue: PermissionFlowStatusStore()
+        )
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(permissionStatusStore)
         }
     }
 }

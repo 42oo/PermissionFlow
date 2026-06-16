@@ -20,6 +20,10 @@ let package = Package(
             targets: ["PermissionFlow"]
         ),
         .library(
+            name: "PermissionFlowStatusStore",
+            targets: ["PermissionFlowStatusStore"]
+        ),
+        .library(
             name: "PermissionFlowBluetoothStatus",
             targets: ["PermissionFlowBluetoothStatus"]
         ),
@@ -50,6 +54,11 @@ let package = Package(
             resources: [
                 .process("Resources")
             ]
+        ),
+        .target(
+            name: "PermissionFlowStatusStore",
+            dependencies: ["PermissionFlow"],
+            path: "Sources/PermissionFlowStatusStore"
         ),
         .target(
             name: "PermissionFlowBluetoothStatus",

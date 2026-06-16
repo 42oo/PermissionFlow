@@ -87,6 +87,7 @@ package 地址和安装入口与之前保持一致。现在变化的是 product 
 
 - `PermissionFlow`：用于支持悬浮授权引导的权限页
 - `SystemSettingsKit`：用于任意 `System Settings` 页面 deeplink 跳转
+- `PermissionFlowStatusStore`：提供可注入 SwiftUI 环境的权限状态 store，方便在任意视图读取状态
 - `PermissionFlowExtendedStatus`：为 `.bluetooth`、`.inputMonitoring`、`.mediaAppleMusic`、`.screenRecording` 提供一站式可选状态检测
 - `PermissionFlowBluetoothStatus`：`.bluetooth` 的可选状态检测
 - `PermissionFlowMediaStatus`：`.mediaAppleMusic` 的可选状态检测
@@ -252,6 +253,129 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+        }
+    }
+}
+```
+
+### 在 App 入口注入状态 Store
+
+如果你希望在任意 SwiftUI 视图里读取权限状态，可以引入 `PermissionFlowStatusStore` product：
+
+```swift
+.product(name: "PermissionFlow", package: "PermissionFlow"),
+.product(name: "PermissionFlowStatusStore", package: "PermissionFlow")
+```
+
+然后在入口创建并注入：
+
+```swift
+import PermissionFlow
+import PermissionFlowStatusStore
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @StateObject private var permissionStatusStore = PermissionFlowStatusStore()
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(permissionStatusStore)
+        }
+    }
+}
+```
+
+在任意子视图里读取：
+
+```swift
+import PermissionFlow
+import PermissionFlowStatusStore
+import SwiftUI
+
+struct PermissionBadge: View {
+    @EnvironmentObject private var permissionStatusStore: PermissionFlowStatusStore
+
+    var body: some View {
+        Text(title(for: permissionStatusStore.state(for: .accessibility)))
+            .onAppear {
+                permissionStatusStore.refresh(.accessibility)
+            }
+    }
+
+    private func title(for state: PermissionAuthorizationState) -> String {
+        switch state {
+        case .granted:
+            "已授权"
+        case .notGranted:
+            "未授权"
+        case .unknown:
+            "未知"
+        case .checking:
+            "检查中"
+        }
+    }
+}
+```
+
+`PermissionFlowStatusStore` 默认会跟踪 `PermissionFlowPane.allCases`，并在 App 重新激活时自动刷新。也可以只跟踪部分权限：
+
+```swift
+@StateObject private var permissionStatusStore = PermissionFlowStatusStore(
+    panes: [.accessibility, .fullDiskAccess, .screenRecording]
+)
+```
+
+注意：`PermissionFlowStatusStore` 只是状态容器，`.inputMonitoring`、`.screenRecording`、`.bluetooth`、`.mediaAppleMusic` 这类可选权限仍然需要先注册对应状态检测 provider。也就是说 `register()` 和 `PermissionFlowStatusStore` 是两步：
+
+```swift
+import PermissionFlowInputMonitoringStatus
+import PermissionFlowStatusStore
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @StateObject private var permissionStatusStore: PermissionFlowStatusStore
+
+    init() {
+        PermissionFlowInputMonitoringStatus.register()
+        _permissionStatusStore = StateObject(
+            wrappedValue: PermissionFlowStatusStore()
+        )
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(permissionStatusStore)
+        }
+    }
+}
+```
+
+如果一次启用全部可选状态检测，可以注册 `PermissionFlowExtendedStatus`：
+
+```swift
+import PermissionFlowExtendedStatus
+import PermissionFlowStatusStore
+import SwiftUI
+
+@main
+struct MyApp: App {
+    @StateObject private var permissionStatusStore: PermissionFlowStatusStore
+
+    init() {
+        PermissionFlowExtendedStatus.register()
+        _permissionStatusStore = StateObject(
+            wrappedValue: PermissionFlowStatusStore()
+        )
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(permissionStatusStore)
         }
     }
 }
