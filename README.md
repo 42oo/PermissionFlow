@@ -327,6 +327,22 @@ struct PermissionBadge: View {
 )
 ```
 
+`PermissionFlowStatusStore` does not decide whether a pane is detectable by itself; it reads the providers currently registered in `PermissionStatusRegistry`. Current support is:
+
+| Pane | Detectable by default | Requires extra registration | Not reliably detectable |
+| --- | --- | --- | --- |
+| `.accessibility` | ✅ |  |  |
+| `.fullDiskAccess` | ✅ |  |  |
+| `.microphone` | ✅ |  |  |
+| `.bluetooth` |  | ✅ |  |
+| `.inputMonitoring` |  | ✅ |  |
+| `.mediaAppleMusic` |  | ✅ |  |
+| `.screenRecording` |  | ✅ |  |
+| `.appManagement` |  |  | ✅ |
+| `.developerTools` |  |  | ✅ |
+
+For panes that are not reliably detectable, `state(for:)` usually returns `.unknown`.
+
 Note: `PermissionFlowStatusStore` is only the state container. Optional panes such as `.inputMonitoring`, `.screenRecording`, `.bluetooth`, and `.mediaAppleMusic` still need their status providers registered first. In other words, `register()` and `PermissionFlowStatusStore` are two separate steps:
 
 ```swift

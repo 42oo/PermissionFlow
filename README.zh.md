@@ -327,6 +327,22 @@ struct PermissionBadge: View {
 )
 ```
 
+`PermissionFlowStatusStore` 本身不决定某个权限是否可检测；它会读取 `PermissionStatusRegistry` 中已经注册的 provider。当前支持情况如下：
+
+| 权限 | 默认可检测 | 需要额外注册 | 不可可靠检测 |
+| --- | --- | --- | --- |
+| `.accessibility` | ✅ |  |  |
+| `.fullDiskAccess` | ✅ |  |  |
+| `.microphone` | ✅ |  |  |
+| `.bluetooth` |  | ✅ |  |
+| `.inputMonitoring` |  | ✅ |  |
+| `.mediaAppleMusic` |  | ✅ |  |
+| `.screenRecording` |  | ✅ |  |
+| `.appManagement` |  |  | ✅ |
+| `.developerTools` |  |  | ✅ |
+
+对于不可可靠检测的权限，`state(for:)` 通常会返回 `.unknown`。
+
 注意：`PermissionFlowStatusStore` 只是状态容器，`.inputMonitoring`、`.screenRecording`、`.bluetooth`、`.mediaAppleMusic` 这类可选权限仍然需要先注册对应状态检测 provider。也就是说 `register()` 和 `PermissionFlowStatusStore` 是两步：
 
 ```swift
