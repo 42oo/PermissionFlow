@@ -530,7 +530,7 @@ PermissionFlowButton(
     pane: .screenRecording,
     suggestedAppURLs: [Bundle.main.bundleURL],
     configuration: .init()
-) { buttonState in
+) { state in
     let str = LocalizedStringResource(
         String.LocalizationValue(state.titleKey),
         bundle: PermissionFlowResources.bundle
