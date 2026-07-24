@@ -531,8 +531,12 @@ PermissionFlowButton(
     suggestedAppURLs: [Bundle.main.bundleURL],
     configuration: .init()
 ) { buttonState in
-    Label("Open Screen Recording", systemImage: buttonState.systemImage)
-        .foregroundStyle(buttonState.isGranted ? .green : .primary)
+    let str = LocalizedStringResource(
+        String.LocalizationValue(state.titleKey),
+        bundle: PermissionFlowResources.bundle
+    )
+    Label(str, systemImage: state.systemImage)
+        .foregroundStyle(state.isGranted ? .green : .primary)
 }
 ```
 
