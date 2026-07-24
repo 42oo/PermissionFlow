@@ -554,6 +554,27 @@ let controller = PermissionFlow.makeController(
 - `resetDroppedApps()`
 - `registerDroppedApp(_:)`
 
+### `PermissionFlowResources`
+
+对外暴露包内资源 bundle（`Bundle.module`）。宿主 App 需要读取 PermissionFlow 自带的本地化字符串或其他资源时使用：
+
+```swift
+import PermissionFlow
+
+let bundle = PermissionFlowResources.bundle
+let title = bundle.localizedString(
+    forKey: "some.key",
+    value: "默认文案",
+    table: nil
+)
+```
+
+```swift
+public enum PermissionFlowResources {
+    public static let bundle = Bundle.module
+}
+```
+
 ### `SystemSettings.open`
 
 可以通过 `pane identifier` 和可选 `anchor` 直接跳转任意系统设置页面：
