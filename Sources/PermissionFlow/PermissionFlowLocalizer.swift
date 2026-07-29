@@ -3,6 +3,21 @@ import Foundation
 
 @available(macOS 13.0, *)
 enum PermissionFlowLocalizer {
+    private static let resourceBundle: Bundle = {
+        if Bundle.main.bundleURL.pathExtension.lowercased() == "app",
+           let resourceURL = Bundle.main.resourceURL,
+           let bundle = Bundle(
+               url: resourceURL.appendingPathComponent(
+                   "PermissionFlow_PermissionFlow.bundle",
+                   isDirectory: true
+               )
+           ) {
+            return bundle
+        }
+
+        return Bundle.module
+    }()
+
     /// Resolves a localized string from the best matching `.lproj` bundle for
     /// the injected locale. This keeps all custom locale selection in one
     /// place, while still letting the rest of the UI use plain localization
@@ -14,7 +29,7 @@ enum PermissionFlowLocalizer {
     ) -> String {
         localizedBundle(for: localeIdentifier)?
             .localizedString(forKey: key, value: defaultValue, table: nil)
-            ?? Bundle.module.localizedString(forKey: key, value: defaultValue, table: nil)
+            ?? resourceBundle.localizedString(forKey: key, value: defaultValue, table: nil)
     }
 
     private static func localizedBundle(for localeIdentifier: String?) -> Bundle? {
@@ -24,10 +39,10 @@ enum PermissionFlowLocalizer {
 
         let preferences = localizationPreferences(for: localeIdentifier)
         guard let localization = Bundle.preferredLocalizations(
-            from: Bundle.module.localizations,
+            from: resourceBundle.localizations,
             forPreferences: preferences
         ).first,
-        let path = Bundle.module.path(forResource: localization, ofType: "lproj") else {
+        let path = resourceBundle.path(forResource: localization, ofType: "lproj") else {
             return nil
         }
 
